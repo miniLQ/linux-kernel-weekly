@@ -134,7 +134,7 @@
         /* 内容区域 */
         .viewer-container {
             display: flex;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 2rem;
         }
@@ -143,7 +143,7 @@
         .table-of-contents {
             position: sticky;
             top: 100px;
-            width: 280px;
+            width: 320px;
             max-height: calc(100vh - 140px);
             overflow-y: auto;
             background: var(--bg-secondary);
@@ -212,7 +212,7 @@
         /* Markdown 内容区域 */
         .markdown-viewer {
             flex: 1;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 2rem 0;
         }
         
@@ -223,6 +223,7 @@
             padding: 2rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
+            color: #e2e8f0;
         }
         
         .markdown-body h1,
@@ -244,7 +245,29 @@
         .markdown-body h6:hover .anchor-link {
             opacity: 1;
         }
-        
+
+        /* 只在深色主题下优化文字颜色 */
+        [data-theme="dark"] .markdown-body {
+            color: #e2e8f0;
+        }
+
+        [data-theme="dark"] .markdown-body h1,
+        [data-theme="dark"] .markdown-body h2,
+        [data-theme="dark"] .markdown-body h3,
+        [data-theme="dark"] .markdown-body h4,
+        [data-theme="dark"] .markdown-body h5,
+        [data-theme="dark"] .markdown-body h6 {
+            color: #f8fafc;
+        }
+
+        [data-theme="dark"] .markdown-body a {
+            color: #60a5fa;
+        }
+
+        [data-theme="dark"] .markdown-body code {
+            color: #fbbf24;
+        }
+
         .anchor-link {
             position: absolute;
             left: -1.5rem;
