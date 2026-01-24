@@ -131,7 +131,7 @@ class App {
         // 按月份分组
         const monthlyData = {};
         this.reports.forEach(report => {
-            const yearMonth = report.date.substring(0, 7); // YYYY-MM
+            const yearMonth = report.date.substring(0, 6); // YYYY-MM
             monthlyData[yearMonth] = (monthlyData[yearMonth] || 0) + 1;
         });
         
@@ -228,7 +228,7 @@ class App {
         
         this.filteredReports = this.reports.filter(report => {
             const reportYear = report.date.substring(0, 4);
-            const reportMonth = report.date.substring(5, 7);
+            const reportMonth = report.date.substring(4, 6);
             
             if (year && reportYear !== year) return false;
             if (month && reportMonth !== month) return false;
