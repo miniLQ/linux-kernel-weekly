@@ -110,8 +110,8 @@ class App {
                 <h4 class="report-title">${report.title}</h4>
                 <p class="report-excerpt">${report.description || 'Linux 内核开发周刊报告'}</p>
                 <div class="report-actions">
-                    <button class="btn btn-secondary" onclick="app.openReport('${report.filename}')">
-                        <i class="fas fa-eye"></i> 查看
+                    <button class="btn btn-primary" onclick="app.viewReportOnline('${report.filename}', '${report.title}')">
+                        <i class="fas fa-eye"></i> 在线阅读
                     </button>
                     <button class="btn btn-secondary" onclick="app.downloadReport('${report.filename}')">
                         <i class="fas fa-download"></i> 下载
@@ -432,6 +432,29 @@ class App {
     downloadAllReports() {
         // 创建 ZIP 文件（简化版：提示用户）
         alert('即将提供批量下载功能，目前请逐个下载报告文件。');
+    }
+
+    // 在 App 类中添加以下方法
+    viewReportOnline(filename, title) {
+        // 构建阅读器 URL
+        const params = new URLSearchParams({
+            file: filename,
+            title: encodeURIComponent(title)
+        });
+        
+        // 打开阅读器页面
+        window.open(`reader.html?${params.toString()}`, '_blank');
+    }
+
+    openReader(filename, title) {
+        // 使用查询参数打开阅读器
+        const params = new URLSearchParams({
+            file: filename,
+            title: title
+        });
+        
+        // 在当前页面打开
+        window.open(`viewer.html?${params.toString()}`, '_blank');
     }
 }
 
