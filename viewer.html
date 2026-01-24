@@ -430,18 +430,25 @@
     <script>
         class ReportViewer {
             constructor() {
-                this.currentReport = null;
+                this.currentFile = null;
                 this.currentTitle = null;
                 this.headers = [];
+                this.isInitialized = false;
                 
                 this.init();
             }
             
-            init() {
-                this.loadReportFromURL();
-                this.bindEvents();
-                this.setupTheme();
-                this.setupTocToggle();
+            async init() {
+                try {
+                    await this.loadReportFromURL();
+                    this.bindEvents();
+                    this.setupTheme();
+                    this.isInitialized = true;
+                    console.log('ReportReader initialized successfully');
+                } catch (error) {
+                    console.error('Error initializing ReportReader:', error);
+                    this.showError(`初始化失败: ${error.message}`);
+                }
             }
             
             async loadReportFromURL() {
@@ -480,12 +487,15 @@
                     console.log('Loading report from:', filename);
                     
                     // 显示加载状态
-                    document.getElementById('content').innerHTML = `
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>加载报告中...</p>
-                        </div>
-                    `;
+                    const contentElement = document.getElementById('content');
+                    if (contentElement) {
+                        contentElement.innerHTML = `
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                <p>加载报告中...</p>
+                            </div>
+                        `;
+                    }
                     
                     // 获取报告内容
                     const response = await fetch(filename);
@@ -496,16 +506,22 @@
                     const markdown = await response.text();
                     console.log('Markdown loaded, length:', markdown.length);
                     
+                    // 渲染 Markdown
                     await this.renderMarkdown(markdown);
                     
                     // 生成目录
                     this.generateTableOfContents();
+                    
+                    // 设置滚动监听
+                    this.setupScrollSpy();
                     
                     // 更新下载按钮
                     const downloadBtn = document.getElementById('downloadBtn');
                     if (downloadBtn) {
                         downloadBtn.onclick = () => this.downloadReport(filename);
                     }
+                    
+                    console.log('Report loaded and rendered successfully');
                     
                 } catch (error) {
                     console.error('Error loading report:', error);
@@ -625,17 +641,27 @@
                             article.classList.add('markdown-body');
                         }
                         
+                        // 等待 DOM 更新
+                        await this.waitForDOM();
+                        
+                        // 高亮代码
+                        if (window.hljs) {
+                            hljs.highlightAll();
+                        }
+                        
                         // 绑定复制按钮事件
                         this.bindCopyButtons();
                         
                         // 绑定锚点链接事件
                         this.bindAnchorLinks();
                         
-                        // 高亮代码
-                        hljs.highlightAll();
-                        
                         // 收集所有标题用于目录
                         this.collectHeaders();
+                        
+                        console.log('Markdown rendered successfully');
+                        
+                    } else {
+                        throw new Error('Content element not found');
                     }
                     
                 } catch (error) {
@@ -644,46 +670,105 @@
                     throw error;
                 }
             }
+
+            // 添加等待 DOM 更新的辅助方法
+            waitForDOM() {
+                return new Promise(resolve => {
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', resolve);
+                    } else {
+                        // 使用 setTimeout 确保下一帧执行
+                        setTimeout(resolve, 50);
+                    }
+                });
+            }
             
             collectHeaders() {
-                const article = document.getElementById('markdownContent');
-                if (!article) return;
+                console.log('Collecting headers...');
                 
-                this.headers = Array.from(article.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-                    .map(header => ({
-                        level: parseInt(header.tagName.substring(1)),
-                        text: header.textContent.replace(' #', '').trim(),
-                        id: header.id,
-                        element: header
-                    }));
+                // 等待一下确保 DOM 完全渲染
+                setTimeout(() => {
+                    const article = document.querySelector('.markdown-body');
+                    if (!article) {
+                        console.warn('Markdown body not found');
+                        this.headers = [];
+                        return;
+                    }
+                    
+                    const headerElements = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                    console.log('Found', headerElements.length, 'headers');
+                    
+                    this.headers = Array.from(headerElements)
+                        .map(header => {
+                            try {
+                                return {
+                                    level: parseInt(header.tagName.substring(1)),
+                                    text: header.textContent.replace(' #', '').trim(),
+                                    id: header.id,
+                                    element: header
+                                };
+                            } catch (error) {
+                                console.warn('Error parsing header:', header, error);
+                                return null;
+                            }
+                        })
+                        .filter(header => header !== null);
+                    
+                    console.log('Headers collected:', this.headers);
+                }, 100);
             }
             
             generateTableOfContents() {
+                console.log('Generating table of contents...');
+                
                 const tocList = document.getElementById('tocList');
-                if (!tocList || this.headers.length === 0) {
-                    tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
+                if (!tocList) {
+                    console.error('TOC list element not found');
                     return;
                 }
                 
-                let tocHTML = '';
-                this.headers.forEach((header, index) => {
-                    const indent = (header.level - 1) * 20;
+                // 等待 headers 被收集
+                const checkHeaders = () => {
+                    if (this.headers.length === 0) {
+                        console.log('No headers yet, waiting...');
+                        setTimeout(checkHeaders, 100);
+                        return;
+                    }
                     
-                    tocHTML += `
-                        <li class="toc-item">
-                            <a href="#${header.id}" 
-                               class="toc-link level-${header.level}"
-                               style="padding-left: ${indent}px">
-                                ${header.text}
-                            </a>
-                        </li>
-                    `;
-                });
+                    console.log('Generating TOC with', this.headers.length, 'headers');
+                    
+                    if (this.headers.length === 0) {
+                        tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
+                        return;
+                    }
+                    
+                    let tocHTML = '';
+                    this.headers.forEach((header, index) => {
+                        if (!header || !header.id) return;
+                        
+                        const indent = (header.level - 1) * 20;
+                        
+                        tocHTML += `
+                            <li class="toc-item">
+                                <a href="#${header.id}" 
+                                class="toc-link level-${header.level}"
+                                style="padding-left: ${indent}px">
+                                    ${header.text || `标题 ${index + 1}`}
+                                </a>
+                            </li>
+                        `;
+                    });
+                    
+                    tocList.innerHTML = tocHTML;
+                    
+                    // 绑定目录链接事件
+                    this.bindTocLinks();
+                    
+                    console.log('Table of contents generated');
+                };
                 
-                tocList.innerHTML = tocHTML;
-                
-                // 绑定目录链接事件
-                this.bindTocLinks();
+                // 开始检查
+                setTimeout(checkHeaders, 200);
             }
             
             bindTocLinks() {
@@ -921,6 +1006,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.viewer = new ReportViewer();
         });
+    </script>
+
+    <script>
+        // 防止页面卡死
+        setTimeout(() => {
+            const content = document.getElementById('content');
+            const loading = content?.querySelector('.loading-state');
+            const reader = window.reader;
+            
+            if (loading && reader && !reader.isInitialized) {
+                console.warn('Page seems stuck, showing fallback');
+                reader.showError('页面加载超时，请刷新重试或检查报告文件');
+            }
+        }, 10000); // 10秒后检查
     </script>
 </body>
 </html>
