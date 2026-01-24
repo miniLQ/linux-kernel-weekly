@@ -77,6 +77,18 @@
             background: rgba(var(--bg-primary-rgb, 15, 23, 42), 0.95);
         }
         
+        .header-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 1rem;
+        }
+        
         .btn {
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
@@ -378,10 +390,11 @@
 </head>
 <body>
     <div class="viewer-header">
-        <div>
+        <div style="display: flex; align-items: center;">
             <a href="index.html" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> 返回主页
+                <i class="fas fa-arrow-left"></i> 返回
             </a>
+            <div class="header-title" id="reportTitle">Linux Kernel Weekly Report</div>
         </div>
         
         <div class="viewer-controls">
@@ -418,12 +431,12 @@
         </aside>
         
         <main class="markdown-viewer">
-            <article id="markdownContent">
+            <div id="content">
                 <div class="loading">
                     <div class="spinner-circle"></div>
                     <p>加载报告中...</p>
                 </div>
-            </article>
+            </div>
         </main>
     </div>
     
@@ -443,10 +456,11 @@
                     await this.loadReportFromURL();
                     this.bindEvents();
                     this.setupTheme();
+                    this.setupTocToggle();
                     this.isInitialized = true;
-                    console.log('ReportReader initialized successfully');
+                    console.log('ReportViewer initialized successfully');
                 } catch (error) {
-                    console.error('Error initializing ReportReader:', error);
+                    console.error('Error initializing ReportViewer:', error);
                     this.showError(`初始化失败: ${error.message}`);
                 }
             }
@@ -490,8 +504,8 @@
                     const contentElement = document.getElementById('content');
                     if (contentElement) {
                         contentElement.innerHTML = `
-                            <div class="loading-state">
-                                <div class="loading-spinner"></div>
+                            <div class="loading">
+                                <div class="spinner-circle"></div>
                                 <p>加载报告中...</p>
                             </div>
                         `;
@@ -506,22 +520,10 @@
                     const markdown = await response.text();
                     console.log('Markdown loaded, length:', markdown.length);
                     
-                    // 渲染 Markdown
-                    await this.renderMarkdown(markdown);
+                    // 渲染 Markdown - 简化的直接渲染
+                    await this.simpleRenderMarkdown(markdown);
                     
-                    // 生成目录
-                    this.generateTableOfContents();
-                    
-                    // 设置滚动监听
-                    this.setupScrollSpy();
-                    
-                    // 更新下载按钮
-                    const downloadBtn = document.getElementById('downloadBtn');
-                    if (downloadBtn) {
-                        downloadBtn.onclick = () => this.downloadReport(filename);
-                    }
-                    
-                    console.log('Report loaded and rendered successfully');
+                    console.log('Report loaded successfully');
                     
                 } catch (error) {
                     console.error('Error loading report:', error);
@@ -529,7 +531,8 @@
                 }
             }
             
-            async renderMarkdown(markdown) {
+            // 简化版渲染，先确保能显示内容
+            async simpleRenderMarkdown(markdown) {
                 try {
                     // 确保 markdown 是字符串
                     if (typeof markdown !== 'string') {
@@ -537,80 +540,10 @@
                         markdown = String(markdown || '');
                     }
                     
-                    // 配置 marked
-                    marked.setOptions({
-                        gfm: true,
-                        breaks: true,
-                        headerIds: true,
-                        highlight: function(code, lang) {
-                            if (lang && hljs.getLanguage(lang)) {
-                                try {
-                                    return hljs.highlight(code, { language: lang }).value;
-                                } catch (err) {
-                                    console.warn('Highlight.js error:', err);
-                                    return code;
-                                }
-                            }
-                            return code;
-                        }
-                    });
+                    // 使用 marked 解析
+                    const html = marked.parse(markdown);
                     
-                    // 创建新的渲染器实例
-                    const renderer = new marked.Renderer();
-                    
-                    // 自定义标题渲染（添加锚点）
-                    renderer.heading = (text, level) => {
-                        // 确保 text 是字符串
-                        const textStr = String(text || '');
-                        const escapedText = textStr.toLowerCase()
-                            .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
-                            .replace(/^-+|-+$/g, '');
-                        
-                        return `
-                            <h${level} id="${escapedText}" class="heading-${level}">
-                                ${textStr}
-                                <a href="#${escapedText}" class="anchor-link" title="复制链接">
-                                    <i class="fas fa-link"></i>
-                                </a>
-                            </h${level}>
-                        `;
-                    };
-                    
-                    // 自定义代码块渲染
-                    renderer.code = (code, language, isEscaped) => {
-                        const codeStr = String(code || '');
-                        const validLanguage = language || 'text';
-                        
-                        let highlighted;
-                        if (language && hljs.getLanguage(language)) {
-                            try {
-                                highlighted = hljs.highlight(codeStr, { language }).value;
-                            } catch (err) {
-                                console.warn('Highlight.js error:', err);
-                                highlighted = this.escapeHtml(codeStr);
-                            }
-                        } else {
-                            highlighted = this.escapeHtml(codeStr);
-                        }
-                        
-                        return `
-                            <div class="code-block">
-                                <div class="code-header">
-                                    <span class="lang-label">${validLanguage}</span>
-                                    <button class="copy-btn" data-code="${this.escapeHtml(codeStr)}">
-                                        <i class="far fa-copy"></i>
-                                        <span>复制</span>
-                                    </button>
-                                </div>
-                                <pre><code class="hljs language-${validLanguage}">${highlighted}</code></pre>
-                            </div>
-                        `;
-                    };
-                    
-                    // 使用自定义渲染器
-                    const html = marked.parse(markdown, { renderer });
-                    
-                    // 清理和渲染
+                    // 清理 HTML
                     const cleanHtml = DOMPurify.sanitize(html, {
                         ADD_ATTR: ['target'],
                         ALLOWED_TAGS: [
@@ -635,87 +568,31 @@
                             </article>
                         `;
                         
-                        // 应用 GitHub markdown 样式
-                        const article = contentElement.querySelector('.markdown-body');
-                        if (article) {
-                            article.classList.add('markdown-body');
-                        }
-                        
-                        // 等待 DOM 更新
-                        await this.waitForDOM();
-                        
                         // 高亮代码
                         if (window.hljs) {
                             hljs.highlightAll();
                         }
                         
-                        // 绑定复制按钮事件
-                        this.bindCopyButtons();
+                        // 添加基础样式
+                        const article = contentElement.querySelector('.markdown-body');
+                        if (article) {
+                            article.classList.add('markdown-body');
+                        }
                         
-                        // 绑定锚点链接事件
-                        this.bindAnchorLinks();
+                        // 现在生成目录
+                        this.generateTableOfContents();
                         
-                        // 收集所有标题用于目录
-                        this.collectHeaders();
-                        
-                        console.log('Markdown rendered successfully');
-                        
-                    } else {
-                        throw new Error('Content element not found');
+                        // 更新下载按钮
+                        const downloadBtn = document.getElementById('downloadBtn');
+                        if (downloadBtn && this.currentFile) {
+                            downloadBtn.onclick = () => this.downloadReport(this.currentFile);
+                        }
                     }
                     
                 } catch (error) {
-                    console.error('Error rendering markdown:', error);
-                    this.showError(`渲染报告失败: ${error.message}`);
+                    console.error('Error in simpleRenderMarkdown:', error);
                     throw error;
                 }
-            }
-
-            // 添加等待 DOM 更新的辅助方法
-            waitForDOM() {
-                return new Promise(resolve => {
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', resolve);
-                    } else {
-                        // 使用 setTimeout 确保下一帧执行
-                        setTimeout(resolve, 50);
-                    }
-                });
-            }
-            
-            collectHeaders() {
-                console.log('Collecting headers...');
-                
-                // 等待一下确保 DOM 完全渲染
-                setTimeout(() => {
-                    const article = document.querySelector('.markdown-body');
-                    if (!article) {
-                        console.warn('Markdown body not found');
-                        this.headers = [];
-                        return;
-                    }
-                    
-                    const headerElements = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                    console.log('Found', headerElements.length, 'headers');
-                    
-                    this.headers = Array.from(headerElements)
-                        .map(header => {
-                            try {
-                                return {
-                                    level: parseInt(header.tagName.substring(1)),
-                                    text: header.textContent.replace(' #', '').trim(),
-                                    id: header.id,
-                                    element: header
-                                };
-                            } catch (error) {
-                                console.warn('Error parsing header:', header, error);
-                                return null;
-                            }
-                        })
-                        .filter(header => header !== null);
-                    
-                    console.log('Headers collected:', this.headers);
-                }, 100);
             }
             
             generateTableOfContents() {
@@ -727,48 +604,49 @@
                     return;
                 }
                 
-                // 等待 headers 被收集
-                const checkHeaders = () => {
-                    if (this.headers.length === 0) {
-                        console.log('No headers yet, waiting...');
-                        setTimeout(checkHeaders, 100);
-                        return;
-                    }
-                    
-                    console.log('Generating TOC with', this.headers.length, 'headers');
-                    
-                    if (this.headers.length === 0) {
-                        tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
-                        return;
-                    }
-                    
-                    let tocHTML = '';
-                    this.headers.forEach((header, index) => {
-                        if (!header || !header.id) return;
-                        
-                        const indent = (header.level - 1) * 20;
-                        
-                        tocHTML += `
-                            <li class="toc-item">
-                                <a href="#${header.id}" 
-                                class="toc-link level-${header.level}"
-                                style="padding-left: ${indent}px">
-                                    ${header.text || `标题 ${index + 1}`}
-                                </a>
-                            </li>
-                        `;
-                    });
-                    
-                    tocList.innerHTML = tocHTML;
-                    
-                    // 绑定目录链接事件
-                    this.bindTocLinks();
-                    
-                    console.log('Table of contents generated');
-                };
+                // 查找所有标题
+                const article = document.querySelector('.markdown-body');
+                if (!article) {
+                    tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
+                    return;
+                }
                 
-                // 开始检查
-                setTimeout(checkHeaders, 200);
+                const headers = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                console.log('Found headers:', headers.length);
+                
+                if (headers.length === 0) {
+                    tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
+                    return;
+                }
+                
+                let tocHTML = '';
+                headers.forEach((header, index) => {
+                    // 确保标题有 ID
+                    if (!header.id) {
+                        header.id = `header-${index}`;
+                    }
+                    
+                    const level = parseInt(header.tagName.substring(1));
+                    const text = header.textContent || `标题 ${index + 1}`;
+                    const indent = (level - 1) * 20;
+                    
+                    tocHTML += `
+                        <li class="toc-item">
+                            <a href="#${header.id}" 
+                               class="toc-link level-${level}"
+                               style="padding-left: ${indent}px">
+                                ${text}
+                            </a>
+                        </li>
+                    `;
+                });
+                
+                tocList.innerHTML = tocHTML;
+                
+                // 绑定目录链接事件
+                this.bindTocLinks();
+                
+                console.log('Table of contents generated');
             }
             
             bindTocLinks() {
@@ -791,88 +669,7 @@
                             // 高亮当前目录项
                             tocList.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
                             link.classList.add('active');
-                            
-                            // 移动端自动关闭目录
-                            if (window.innerWidth < 1200) {
-                                document.getElementById('tableOfContents').style.display = 'none';
-                            }
                         }
-                    });
-                });
-            }
-            
-            setupScrollSpy() {
-                const observer = new IntersectionObserver(
-                    (entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                const id = entry.target.id;
-                                const tocLink = document.querySelector(`.toc-link[href="#${id}"]`);
-                                if (tocLink) {
-                                    document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
-                                    tocLink.classList.add('active');
-                                }
-                            }
-                        });
-                    },
-                    {
-                        rootMargin: '-100px 0px -66% 0px',
-                        threshold: 0.1
-                    }
-                );
-                
-                // 观察所有标题
-                this.headers.forEach(header => {
-                    if (header.element) {
-                        observer.observe(header.element);
-                    }
-                });
-            }
-            
-            bindCopyButtons() {
-                document.querySelectorAll('.copy-btn').forEach(button => {
-                    button.addEventListener('click', async () => {
-                        const code = button.getAttribute('data-code');
-                        try {
-                            await navigator.clipboard.writeText(code);
-                            
-                            // 显示成功状态
-                            const originalHTML = button.innerHTML;
-                            button.innerHTML = '<i class="fas fa-check"></i><span>已复制</span>';
-                            button.classList.add('copied');
-                            
-                            setTimeout(() => {
-                                button.innerHTML = originalHTML;
-                                button.classList.remove('copied');
-                            }, 2000);
-                            
-                        } catch (error) {
-                            console.error('复制失败:', error);
-                            button.innerHTML = '<i class="fas fa-times"></i><span>失败</span>';
-                            setTimeout(() => {
-                                button.innerHTML = '<i class="far fa-copy"></i><span>复制</span>';
-                            }, 2000);
-                        }
-                    });
-                });
-            }
-            
-            bindAnchorLinks() {
-                document.querySelectorAll('.anchor-link').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const url = new URL(window.location);
-                        url.hash = link.getAttribute('href');
-                        
-                        navigator.clipboard.writeText(url.toString()).then(() => {
-                            const icon = link.querySelector('i');
-                            const originalClass = icon.className;
-                            icon.className = 'fas fa-check';
-                            
-                            setTimeout(() => {
-                                icon.className = originalClass;
-                            }, 1000);
-                        });
                     });
                 });
             }
@@ -892,18 +689,10 @@
                 const contentElement = document.getElementById('content');
                 if (contentElement) {
                     contentElement.innerHTML = `
-                        <div class="error-state" style="text-align: center; padding: 4rem 2rem;">
+                        <div style="text-align: center; padding: 4rem 2rem;">
                             <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-color); margin-bottom: 1rem;"></i>
                             <h3 style="color: var(--text-primary); margin-bottom: 1rem;">加载失败</h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 1rem;">${message}</p>
-                            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: left;">
-                                <p style="margin-bottom: 0.5rem;"><strong>调试信息:</strong></p>
-                                <p style="font-family: monospace; font-size: 0.875rem; margin: 0;">
-                                    当前文件: ${this.currentFile || '无'}<br>
-                                    当前标题: ${this.currentTitle || '无'}<br>
-                                    URL: ${window.location.href}
-                                </p>
-                            </div>
+                            <p style="color: var(--text-secondary); margin-bottom: 2rem;">${message}</p>
                             <div style="display: flex; gap: 1rem; justify-content: center;">
                                 <a href="index.html" class="btn btn-primary">
                                     <i class="fas fa-home"></i> 返回首页
@@ -933,11 +722,14 @@
                     });
                 }
                 
-                // 打印
-                const printBtn = document.getElementById('printBtn');
-                if (printBtn) {
-                    printBtn.addEventListener('click', () => {
-                        window.print();
+                // 目录显示/隐藏
+                const tocToggle = document.getElementById('tocToggle');
+                if (tocToggle) {
+                    tocToggle.addEventListener('click', () => {
+                        const toc = document.getElementById('tableOfContents');
+                        if (toc) {
+                            toc.style.display = toc.style.display === 'none' ? 'block' : 'none';
+                        }
                     });
                 }
                 
@@ -946,6 +738,14 @@
                 if (tocClose) {
                     tocClose.addEventListener('click', () => {
                         document.getElementById('tableOfContents').style.display = 'none';
+                    });
+                }
+                
+                // 打印
+                const printBtn = document.getElementById('printBtn');
+                if (printBtn) {
+                    printBtn.addEventListener('click', () => {
+                        window.print();
                     });
                 }
             }
@@ -976,16 +776,6 @@
             }
             
             setupTocToggle() {
-                const tocToggle = document.getElementById('tocToggle');
-                if (!tocToggle) return;
-                
-                tocToggle.addEventListener('click', () => {
-                    const toc = document.getElementById('tableOfContents');
-                    if (toc) {
-                        toc.style.display = toc.style.display === 'none' ? 'block' : 'none';
-                    }
-                });
-                
                 // 响应式：小屏幕隐藏目录
                 window.addEventListener('resize', () => {
                     const toc = document.getElementById('tableOfContents');
@@ -994,32 +784,24 @@
                     }
                 });
             }
-            
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
         }
         
         // 初始化查看器
         document.addEventListener('DOMContentLoaded', () => {
             window.viewer = new ReportViewer();
-        });
-    </script>
-
-    <script>
-        // 防止页面卡死
-        setTimeout(() => {
-            const content = document.getElementById('content');
-            const loading = content?.querySelector('.loading-state');
-            const reader = window.reader;
             
-            if (loading && reader && !reader.isInitialized) {
-                console.warn('Page seems stuck, showing fallback');
-                reader.showError('页面加载超时，请刷新重试或检查报告文件');
-            }
-        }, 10000); // 10秒后检查
+            // 防止页面卡死
+            setTimeout(() => {
+                const content = document.getElementById('content');
+                const loading = content?.querySelector('.loading');
+                const viewer = window.viewer;
+                
+                if (loading && viewer && !viewer.isInitialized) {
+                    console.warn('Page seems stuck, showing fallback');
+                    viewer.showError('页面加载超时，请刷新重试或检查报告文件');
+                }
+            }, 10000); // 10秒后检查
+        });
     </script>
 </body>
 </html>
