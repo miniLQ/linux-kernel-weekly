@@ -4,14 +4,15 @@
 
 ## 📊 最新报告
 
-- **[📖 Linux Kernel Weekly Report - 20260123](reports/linux_kernel_weekly_20260123.md)**
-  - 生成时间: 2026-01-24 08:40:05 UTC
+- **[📖 Linux Kernel Weekly Report - 20260124](reports/linux_kernel_weekly_20260124.md)**
+  - 生成时间: 2026-01-24 09:08:23 UTC
 
 ## 📁 历史报告
 
 | 报告日期 | 报告链接 |
 |----------|----------|
-| 20260123 | [Linux Kernel Weekly Report - 20260123 🌟](reports/linux_kernel_weekly_20260123.md) |
+| 20260124 | [Linux Kernel Weekly Report - 20260124 🌟](reports/linux_kernel_weekly_20260124.md) |
+| 20260123 | [Linux Kernel Weekly Report - 20260123](archives/linux_kernel_weekly_20260123.md) |
 
 ## 🔄 更新频率
 
