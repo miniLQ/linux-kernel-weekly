@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Kernel Weekly Reports</title>
+    <link rel="icon" href="https://www.kernel.org/theme/images/logos/tux.png" type="image/x-icon">
+    
+    <!-- 样式表 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/sidebar.css">
+    
+    <!-- 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="https://www.kernel.org/theme/images/logos/tux.png" alt="Tux" class="logo-img">
+                <h2>Linux Kernel Weekly</h2>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-content">
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索报告...">
+            </div>
+            
+            <!-- 导航菜单 -->
+            <div class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表板</span>
+                </div>
+                <div class="nav-item" data-section="reports">
+                    <i class="fas fa-newspaper"></i>
+                    <span>所有报告</span>
+                    <span class="badge" id="report-count">0</span>
+                </div>
+                <div class="nav-item" data-section="latest">
+                    <i class="fas fa-star"></i>
+                    <span>最新报告</span>
+                </div>
+                <div class="nav-item" data-section="stats">
+                    <i class="fas fa-chart-line"></i>
+                    <span>统计</span>
+                </div>
+                <div class="nav-item" data-section="about">
+                    <i class="fas fa-info-circle"></i>
+                    <span>关于</span>
+                </div>
+            </div>
+            
+            <!-- 报告目录 -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-list"></i> 报告目录</h3>
+                <div class="report-toc" id="reportToc">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 主题切换 -->
+            <div class="theme-switcher">
+                <i class="fas fa-sun"></i>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="update-time">
+                <i class="fas fa-clock"></i>
+                <span id="lastUpdate">正在更新...</span>
+            </div>
+            <a href="https://github.com/minilq/linux-kernel-weekly" class="github-link" target="_blank">
+                <i class="fab fa-github"></i> GitHub
+            </a>
+        </div>
+    </nav>
+    
+    <!-- 主内容区域 -->
+    <main id="main">
+        <div class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="breadcrumb">
+                <span id="currentSection">仪表板</span>
+            </div>
+            <div class="top-bar-actions">
+                <button class="btn btn-primary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+                <div class="user-info">
+                    <i class="fas fa-robot"></i>
+                    <span>自动生成</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内容容器 -->
+        <div class="content-container">
+            <!-- 仪表板 -->
+            <section id="dashboard" class="content-section active">
+                <div class="hero-section">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">Linux Kernel Weekly</span>
+                    </h1>
+                    <p class="hero-subtitle">自动化的 Linux 内核开发跟踪与分析</p>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="totalReports">0</div>
+                                <div class="stat-label">总报告数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="latestDate">--</div>
+                                <div class="stat-label">最新报告</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="avgSize">--</div>
+                                <div class="stat-label">平均大小</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="updateFreq">每周</div>
+                                <div class="stat-label">更新频率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card card-lg">
+                        <div class="card-header">
+                            <h3><i class="fas fa-fire"></i> 热门报告</h3>
+                            <a href="#" class="view-all" data-section="reports">查看全部</a>
+                        </div>
+                        <div class="card-body">
+                            <div id="topReports" class="report-list">
+                                <!-- 热门报告列表 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> 报告统计</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="reportChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> 最近更新</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline" id="recentUpdates">
+                                <!-- 时间线 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-lg">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> 快速开始</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions">
+                                <button class="quick-action" id="readLatest">
+                                    <i class="fas fa-book-reader"></i>
+                                    <span>阅读最新报告</span>
+                                </button>
+                                <button class="quick-action" id="browseAll">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>浏览所有报告</span>
+                                </button>
+                                <button class="quick-action" id="viewStats">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <span>查看统计</span>
+                                </button>
+                                <button class="quick-action" id="downloadAll">
+                                    <i class="fas fa-download"></i>
+                                    <span>下载全部</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 所有报告 -->
+            <section id="reports" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-newspaper"></i> 所有报告</h2>
+                    <div class="section-actions">
+                        <div class="filter-controls">
+                            <select id="yearFilter" class="filter-select">
+                                <option value="">所有年份</option>
+                            </select>
+                            <select id="monthFilter" class="filter-select">
+                                <option value="">所有月份</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="reports-grid" id="reportsGrid">
+                    <!-- 报告卡片网格 -->
+                </div>
+                
+                <div class="pagination" id="pagination">
+                    <!-- 分页控件 -->
+                </div>
+            </section>
+            
+            <!-- 最新报告 -->
+            <section id="latest" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-star"></i> 最新报告</h2>
+                    <button class="btn btn-primary" id="readLatestReport">
+                        <i class="fas fa-external-link-alt"></i> 在线阅读
+                    </button>
+                </div>
+                
+                <div class="latest-report-container">
+                    <div class="report-preview" id="latestReportPreview">
+                        <!-- 最新报告预览 -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 统计 -->
+            <section id="stats" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> 统计与分析</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calendar-alt"></i> 月度分布</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="monthlyChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-file-signature"></i> 报告大小分布</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="sizeChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-wide">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trend-up"></i> 趋势分析</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 关于 -->
+            <section id="about" class="content-section">
+                <div class="about-container">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fab fa-linux"></i>
+                        </div>
+                        <h2>关于 Linux Kernel Weekly</h2>
+                        <p class="about-description">
+                            这是一个自动化生成的 Linux 内核开发周刊项目，旨在跟踪和分析 Linux 内核开发的最新动态、补丁讨论和技术趋势。
+                        </p>
+                        
+                        <div class="features">
+                            <div class="feature">
+                                <i class="fas fa-robot"></i>
+                                <div>
+                                    <h4>完全自动化</h4>
+                                    <p>每周自动生成，无需人工干预</p>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-sync-alt"></i>
+                                <div>
+                                    <h4>实时更新</h4>
+                                    <p>每周一自动更新最新内容</p>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-chart-line"></i>
+                                <div>
+                                    <h4>数据分析</h4>
+                                    <p>提供详细的统计和趋势分析</p>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-code"></i>
+                                <div>
+                                    <h4>开源项目</h4>
+                                    <p>代码完全开源，欢迎贡献</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-stack">
+                            <h3>技术栈</h3>
+                            <div class="tech-tags">
+                                <span class="tech-tag">GitHub Actions</span>
+                                <span class="tech-tag">Python</span>
+                                <span class="tech-tag">Markdown</span>
+                                <span class="tech-tag">JavaScript</span>
+                                <span class="tech-tag">Chart.js</span>
+                                <span class="tech-tag">GitHub Pages</span>
+                            </div>
+                        </div>
+                        
+                        <div class="links">
+                            <a href="https://github.com/minilq/linux-kernel-weekly" class="btn btn-secondary" target="_blank">
+                                <i class="fab fa-github"></i> 查看源码
+                            </a>
+                            <a href="https://www.kernel.org" class="btn btn-secondary" target="_blank">
+                                <i class="fab fa-linux"></i> Linux Kernel
+                            </a>
+                            <a href="https://lore.kernel.org/lkml/" class="btn btn-secondary" target="_blank">
+                                <i class="fas fa-envelope"></i> LKML Archives
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner">
+            <div class="spinner-circle"></div>
+            <p>加载中...</p>
+        </div>
+    </div>
+    
+    <!-- 脚本 -->
+    <script src="assets/js/sidebar.js"></script>
+    <script src="assets/js/markdown.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

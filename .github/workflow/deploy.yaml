@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'assets/**'
+      - '*.html'
+      - '*.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Create necessary files
+        run: |
+          # 确保 assets 目录存在
+          mkdir -p assets/css assets/js
+          
+          # 如果缺少必要文件，创建默认文件
+          if [ ! -f "reports.json" ]; then
+            echo '[]' > reports.json
+          fi
+          
+          if [ ! -f ".nojekyll" ]; then
+            touch .nojekyll
+          fi
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      - name: Display deployment URL
+        run: |
+          echo "🚀 部署成功！"
+          echo "🌐 访问地址: https://minilq.github.io/linux-kernel-weekly/"
+          echo "⏰ 更新可能需要几分钟时间生效"
