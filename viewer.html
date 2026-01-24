@@ -449,14 +449,27 @@
                 const file = params.get('file');
                 const title = params.get('title');
                 
-                this.currentReport = file;
+                console.log('URL Parameters:', { file, title });
+                
+                this.currentFile = file;
                 this.currentTitle = title ? decodeURIComponent(title) : 'Linux Kernel Weekly Report';
                 
-                // 更新页面标题
+                // 确保标题是字符串
+                if (typeof this.currentTitle !== 'string') {
+                    this.currentTitle = String(this.currentTitle || 'Linux Kernel Weekly Report');
+                }
+                
+                // 更新标题
+                const titleElement = document.getElementById('reportTitle');
+                if (titleElement) {
+                    titleElement.textContent = this.currentTitle;
+                }
                 document.title = `${this.currentTitle} - Linux Kernel Weekly`;
                 
                 if (file) {
-                    await this.loadAndRenderReport(file);
+                    // 确保 file 是字符串
+                    const fileStr = String(file || '');
+                    await this.loadAndRenderReport(fileStr);
                 } else {
                     this.showError('没有指定报告文件');
                 }
@@ -464,6 +477,16 @@
             
             async loadAndRenderReport(filename) {
                 try {
+                    console.log('Loading report from:', filename);
+                    
+                    // 显示加载状态
+                    document.getElementById('content').innerHTML = `
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>加载报告中...</p>
+                        </div>
+                    `;
+                    
                     // 获取报告内容
                     const response = await fetch(filename);
                     if (!response.ok) {
@@ -471,13 +494,12 @@
                     }
                     
                     const markdown = await response.text();
+                    console.log('Markdown loaded, length:', markdown.length);
+                    
                     await this.renderMarkdown(markdown);
                     
                     // 生成目录
                     this.generateTableOfContents();
-                    
-                    // 设置滚动监听
-                    this.setupScrollSpy();
                     
                     // 更新下载按钮
                     const downloadBtn = document.getElementById('downloadBtn');
@@ -493,6 +515,12 @@
             
             async renderMarkdown(markdown) {
                 try {
+                    // 确保 markdown 是字符串
+                    if (typeof markdown !== 'string') {
+                        console.error('Markdown content is not a string:', markdown);
+                        markdown = String(markdown || '');
+                    }
+                    
                     // 配置 marked
                     marked.setOptions({
                         gfm: true,
@@ -504,43 +532,56 @@
                                     return hljs.highlight(code, { language: lang }).value;
                                 } catch (err) {
                                     console.warn('Highlight.js error:', err);
+                                    return code;
                                 }
                             }
                             return code;
                         }
                     });
                     
-                    // 自定义渲染器
+                    // 创建新的渲染器实例
                     const renderer = new marked.Renderer();
                     
                     // 自定义标题渲染（添加锚点）
                     renderer.heading = (text, level) => {
-                        const escapedText = text.toLowerCase()
+                        // 确保 text 是字符串
+                        const textStr = String(text || '');
+                        const escapedText = textStr.toLowerCase()
                             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
                             .replace(/^-+|-+$/g, '');
                         
                         return `
                             <h${level} id="${escapedText}" class="heading-${level}">
+                                ${textStr}
                                 <a href="#${escapedText}" class="anchor-link" title="复制链接">
                                     <i class="fas fa-link"></i>
                                 </a>
-                                ${text}
                             </h${level}>
                         `;
                     };
                     
                     // 自定义代码块渲染
                     renderer.code = (code, language, isEscaped) => {
+                        const codeStr = String(code || '');
                         const validLanguage = language || 'text';
-                        const highlighted = language && hljs.getLanguage(language)
-                            ? hljs.highlight(code, { language }).value
-                            : code;
+                        
+                        let highlighted;
+                        if (language && hljs.getLanguage(language)) {
+                            try {
+                                highlighted = hljs.highlight(codeStr, { language }).value;
+                            } catch (err) {
+                                console.warn('Highlight.js error:', err);
+                                highlighted = this.escapeHtml(codeStr);
+                            }
+                        } else {
+                            highlighted = this.escapeHtml(codeStr);
+                        }
                         
                         return `
                             <div class="code-block">
                                 <div class="code-header">
                                     <span class="lang-label">${validLanguage}</span>
-                                    <button class="copy-btn" data-code="${this.escapeHtml(code)}">
+                                    <button class="copy-btn" data-code="${this.escapeHtml(codeStr)}">
                                         <i class="far fa-copy"></i>
                                         <span>复制</span>
                                     </button>
@@ -570,10 +611,19 @@
                         ]
                     });
                     
-                    const contentElement = document.getElementById('markdownContent');
+                    const contentElement = document.getElementById('content');
                     if (contentElement) {
-                        contentElement.innerHTML = cleanHtml;
-                        contentElement.classList.add('markdown-body');
+                        contentElement.innerHTML = `
+                            <article class="markdown-body">
+                                ${cleanHtml}
+                            </article>
+                        `;
+                        
+                        // 应用 GitHub markdown 样式
+                        const article = contentElement.querySelector('.markdown-body');
+                        if (article) {
+                            article.classList.add('markdown-body');
+                        }
                         
                         // 绑定复制按钮事件
                         this.bindCopyButtons();
@@ -590,6 +640,7 @@
                     
                 } catch (error) {
                     console.error('Error rendering markdown:', error);
+                    this.showError(`渲染报告失败: ${error.message}`);
                     throw error;
                 }
             }
@@ -751,13 +802,23 @@
             }
             
             showError(message) {
-                const contentElement = document.getElementById('markdownContent');
+                console.error('Showing error:', message);
+                
+                const contentElement = document.getElementById('content');
                 if (contentElement) {
                     contentElement.innerHTML = `
                         <div class="error-state" style="text-align: center; padding: 4rem 2rem;">
                             <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-color); margin-bottom: 1rem;"></i>
                             <h3 style="color: var(--text-primary); margin-bottom: 1rem;">加载失败</h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 2rem;">${message}</p>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem;">${message}</p>
+                            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: left;">
+                                <p style="margin-bottom: 0.5rem;"><strong>调试信息:</strong></p>
+                                <p style="font-family: monospace; font-size: 0.875rem; margin: 0;">
+                                    当前文件: ${this.currentFile || '无'}<br>
+                                    当前标题: ${this.currentTitle || '无'}<br>
+                                    URL: ${window.location.href}
+                                </p>
+                            </div>
                             <div style="display: flex; gap: 1rem; justify-content: center;">
                                 <a href="index.html" class="btn btn-primary">
                                     <i class="fas fa-home"></i> 返回首页
