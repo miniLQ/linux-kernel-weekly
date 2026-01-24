@@ -60,13 +60,16 @@ class App {
         toc.querySelectorAll('.toc-item').forEach(item => {
             item.addEventListener('click', () => {
                 const filename = item.dataset.filename;
-                this.openReport(filename);
+                const report = this.reports.find(r => r.filename === filename);
+                if (report) {
+                    this.viewReportOnline(report.filename, report.title);
+                }
             });
         });
     }
     
     openReport(filename) {
-        // 在浏览器中打开报告
+        // 在浏览器中打开原始 markdown 文件
         window.open(filename, '_blank');
     }
     
@@ -110,7 +113,7 @@ class App {
                 <h4 class="report-title">${report.title}</h4>
                 <p class="report-excerpt">${report.description || 'Linux 内核开发周刊报告'}</p>
                 <div class="report-actions">
-                    <button class="btn btn-primary" onclick="app.viewReportOnline('${report.filename}', '${report.title}')">
+                    <button class="btn btn-primary" onclick="app.viewReportOnline('${report.filename}', '${this.escapeHtml(report.title)}')">
                         <i class="fas fa-eye"></i> 在线阅读
                     </button>
                     <button class="btn btn-secondary" onclick="app.downloadReport('${report.filename}')">
@@ -254,8 +257,8 @@ class App {
                 <h4 class="report-title">${report.title}</h4>
                 <p class="report-excerpt">${report.description || 'Linux 内核开发周刊报告，包含最新补丁、安全修复和开发动态。'}</p>
                 <div class="report-actions">
-                    <button class="btn btn-primary" onclick="app.openReport('${report.filename}')">
-                        <i class="fas fa-eye"></i> 阅读
+                    <button class="btn btn-primary" onclick="app.viewReportOnline('${report.filename}', '${this.escapeHtml(report.title)}')">
+                        <i class="fas fa-eye"></i> 在线阅读
                     </button>
                     <button class="btn btn-secondary" onclick="app.downloadReport('${report.filename}')">
                         <i class="fas fa-download"></i> 下载
@@ -374,16 +377,31 @@ class App {
             refreshBtn.addEventListener('click', () => location.reload());
         }
         
-        // 快速操作按钮
+        // 快速操作按钮 - 根据修改后的 index.html 更新
         const quickActions = {
-            'readLatest': () => {
+            'readLatestBtn': () => {
                 if (this.reports.length > 0) {
-                    this.openReport(this.reports[0].filename);
+                    const latestReport = this.reports[0];
+                    this.viewReportOnline(latestReport.filename, latestReport.title);
                 }
             },
-            'browseAll': () => sidebar.switchSection('reports'),
-            'viewStats': () => sidebar.switchSection('stats'),
-            'downloadAll': () => this.downloadAllReports()
+            'browseAllBtn': () => {
+                if (window.sidebar) {
+                    sidebar.switchSection('reports');
+                }
+            },
+            'viewStatsBtn': () => {
+                if (window.sidebar) {
+                    sidebar.switchSection('stats');
+                }
+            },
+            'downloadAllBtn': () => this.downloadAllReports(),
+            'readLatestReportBtn': () => {
+                if (this.reports.length > 0) {
+                    const latestReport = this.reports[0];
+                    this.viewReportOnline(latestReport.filename, latestReport.title);
+                }
+            }
         };
         
         Object.entries(quickActions).forEach(([id, action]) => {
@@ -397,14 +415,6 @@ class App {
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
-        }
-        
-        // 查看最新报告
-        const readLatestBtn = document.getElementById('readLatestReport');
-        if (readLatestBtn && this.reports.length > 0) {
-            readLatestBtn.addEventListener('click', () => {
-                this.openReport(this.reports[0].filename);
-            });
         }
     }
     
@@ -434,27 +444,23 @@ class App {
         alert('即将提供批量下载功能，目前请逐个下载报告文件。');
     }
 
-    // 在 App 类中添加以下方法
+    // 在线阅读报告方法
     viewReportOnline(filename, title) {
         // 构建阅读器 URL
         const params = new URLSearchParams({
             file: filename,
-            title: encodeURIComponent(title)
+            title: encodeURIComponent(title || 'Linux Kernel Weekly Report')
         });
         
-        // 打开阅读器页面
-        window.open(`reader.html?${params.toString()}`, '_blank');
-    }
-
-    openReader(filename, title) {
-        // 使用查询参数打开阅读器
-        const params = new URLSearchParams({
-            file: filename,
-            title: title
-        });
-        
-        // 在当前页面打开
+        // 打开阅读器页面 - 使用 viewer.html（如果不存在，需要创建）
         window.open(`viewer.html?${params.toString()}`, '_blank');
+    }
+    
+    // 辅助方法：转义 HTML 特殊字符
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }
 
