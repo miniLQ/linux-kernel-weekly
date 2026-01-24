@@ -137,13 +137,14 @@
             max-width: 1800px;
             margin: 0 auto;
             padding: 0 2rem;
+            gap: 2rem; /* 添加间距 */
         }
         
         /* 目录样式 */
         .table-of-contents {
             position: sticky;
             top: 100px;
-            width: 360px;
+            width: 400px;
             max-height: calc(100vh - 140px);
             overflow-y: auto;
             background: var(--bg-secondary);
@@ -211,8 +212,8 @@
         
         /* Markdown 内容区域 */
         .markdown-viewer {
-            flex: 1;
-            max-width: 1400px;
+            flex: 1 1 auto; /* 允许增长和收缩 */
+            max-width: 1600px;
             margin: 2rem 0;
         }
         
