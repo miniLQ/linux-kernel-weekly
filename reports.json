@@ -1,8 +1,8 @@
 [
   {
-    "date": "20260124",
-    "filename": "reports/linux_kernel_weekly_20260124.md",
-    "title": "Linux Kernel Weekly Report - 20260124",
+    "date": "20260126",
+    "filename": "reports/linux_kernel_weekly_20260126.md",
+    "title": "Linux Kernel Weekly Report - 20260126",
     "is_latest": true
   }
 ,
@@ -10,6 +10,13 @@
     "date": "20260123",
     "filename": "archives/linux_kernel_weekly_20260123.md",
     "title": "Linux Kernel Weekly Report - 20260123",
+    "is_latest": false
+  }
+,
+  {
+    "date": "20260124",
+    "filename": "archives/linux_kernel_weekly_20260124.md",
+    "title": "Linux Kernel Weekly Report - 20260124",
     "is_latest": false
   }
 ]
