@@ -130,6 +130,14 @@
             align-items: center;
             gap: 0.75rem;
         }
+
+        /* 阅读模式开关状态 */
+        .btn-toggle-active {
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary-color);
+        }
         
         /* 内容区域 */
         .viewer-container {
@@ -216,6 +224,180 @@
             max-width: 1600px;
             margin: 2rem 0;
         }
+
+        /* Case 卡片 */
+        .case-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .case-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm, 0 4px 10px rgba(0,0,0,0.1));
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .case-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .case-header {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .case-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .case-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .case-tag {
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            font-size: 0.78rem;
+            color: var(--text-primary);
+            text-transform: lowercase;
+        }
+
+        .case-tag.sev-critical, .case-tag.sev-high {
+            border-color: rgba(239,68,68,0.55);
+            color: #ef4444;
+            background: rgba(239,68,68,0.15);
+        }
+
+        .case-tag.sev-medium {
+            border-color: rgba(245,158,11,0.55);
+            color: #f59e0b;
+            background: rgba(245,158,11,0.15);
+        }
+
+        .case-tag.sev-low {
+            border-color: rgba(52,211,153,0.55);
+            color: #10b981;
+            background: rgba(52,211,153,0.15);
+        }
+
+        .case-tag.type {
+            border-style: dashed;
+        }
+
+        .case-body {
+            margin-top: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .case-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .case-detail {
+            display: none;
+            margin-top: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 2rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+
+        .case-detail.active {
+            display: block;
+        }
+
+        .case-detail p {
+            margin: 0 0 0.75rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .case-detail h4,
+        .case-detail h5,
+        .case-detail h6 {
+            margin: 0.6rem 0 0.4rem;
+            color: var(--text-primary);
+        }
+
+        .case-detail code {
+            background: var(--bg-tertiary);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .case-detail pre {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            overflow: auto;
+        }
+
+        /* 暗色模式下提升链接可读性（参考链接、作者等） */
+        [data-theme="dark"] .case-detail a,
+        [data-theme="dark"] .markdown-body a {
+            color: #8fb8ff;
+        }
+
+        [data-theme="dark"] .case-detail a:hover,
+        [data-theme="dark"] .markdown-body a:hover {
+            color: #b2cdff;
+            text-decoration: underline;
+        }
+
+        .case-original-toggle {
+            margin-top: 1.25rem;
+        }
+
+        /* 阅读模式：窄版/舒适/隐藏代码 */
+        body.reading-narrow .markdown-viewer {
+            max-width: 1100px;
+        }
+
+        body.reading-comfy .markdown-body {
+            font-size: 18px;
+            line-height: 1.85;
+            letter-spacing: 0.01em;
+        }
+
+        body.reading-comfy .markdown-body p {
+            margin-bottom: 1.15em;
+        }
+
+        /* 舒适模式下，卡片文字同步放大行距 */
+        body.reading-comfy .case-card {
+            font-size: 17px;
+            line-height: 1.8;
+        }
+
+        body.reading-comfy .case-title {
+            font-size: 1.05rem;
+        }
+
+        body.reading-comfy .case-body {
+            line-height: 1.8;
+        }
         
         .markdown-body {
             font-size: 16px;
@@ -236,6 +418,16 @@
             position: relative;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
+            padding-left: 0.4rem;
+        }
+
+        .markdown-body h2 {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 0.55rem;
+        }
+
+        .markdown-body h3 {
+            border-left: 3px solid var(--border-color);
         }
         
         .markdown-body h1:hover .anchor-link,
@@ -391,6 +583,10 @@
             .markdown-body {
                 padding: 1.5rem;
             }
+
+            .progress-track {
+                top: 56px;
+            }
         }
         
         /* 滚动条样式 */
@@ -410,9 +606,28 @@
         .table-of-contents::-webkit-scrollbar-thumb:hover {
             background: var(--border-hover);
         }
+
+        /* 滚动进度条 */
+        .progress-track {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1200;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.1s ease;
+        }
     </style>
 </head>
 <body>
+    <div class="progress-track"><div id="scrollProgress" class="progress-bar"></div></div>
     <div class="viewer-header">
         <div style="display: flex; align-items: center;">
             <a href="index.html" class="btn btn-secondary">
@@ -422,6 +637,15 @@
         </div>
         
         <div class="viewer-controls">
+            <button class="btn btn-secondary" id="toggleOriginal" title="切换原文视图">
+                <i class="fas fa-file-alt"></i>
+            </button>
+            <button class="btn btn-secondary" id="comfyToggle" title="舒适模式 (大字号/行距)">
+                <i class="fas fa-leaf"></i>
+            </button>
+            <button class="btn btn-secondary" id="narrowToggle" title="窄版阅读 (聚焦正文)">
+                <i class="fas fa-align-justify"></i>
+            </button>
             <button class="btn btn-secondary" id="themeToggle">
                 <i class="fas fa-moon"></i>
             </button>
@@ -480,6 +704,7 @@
                     await this.loadReportFromURL();
                     this.bindEvents();
                     this.setupTheme();
+                    this.enableDefaultComfy();
                     this.setupTocToggle();
                     this.isInitialized = true;
                     console.log('ReportViewer initialized successfully');
@@ -544,10 +769,11 @@
                     const markdown = await response.text();
                     console.log('Markdown loaded, length:', markdown.length);
                     
-                    // 渲染 Markdown - 简化的直接渲染
-                    await this.simpleRenderMarkdown(markdown);
+                    // 渲染：优先用卡片化视图
+                    await this.renderCasesOrMarkdown(markdown);
                     
                     console.log('Report loaded successfully');
+                    this.updateScrollProgress();
                     
                 } catch (error) {
                     console.error('Error loading report:', error);
@@ -555,122 +781,269 @@
                 }
             }
             
-            // 简化版渲染，先确保能显示内容
-            async simpleRenderMarkdown(markdown) {
-                try {
-                    // 确保 markdown 是字符串
-                    if (typeof markdown !== 'string') {
-                        console.error('Markdown content is not a string:', markdown);
-                        markdown = String(markdown || '');
-                    }
-                    
-                    // 使用 marked 解析
-                    const html = marked.parse(markdown);
-                    
-                    // 清理 HTML
-                    const cleanHtml = DOMPurify.sanitize(html, {
-                        ADD_ATTR: ['target'],
-                        ALLOWED_TAGS: [
-                            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                            'p', 'br', 'hr',
-                            'ul', 'ol', 'li',
-                            'strong', 'em', 'code', 'pre', 'blockquote',
-                            'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
-                            'div', 'span'
-                        ],
-                        ALLOWED_ATTR: [
-                            'class', 'id', 'href', 'title', 'target', 'src', 'alt',
-                            'width', 'height', 'style'
-                        ]
+            // 渲染：优先卡片化，每个 case 一张卡，可展开全文；保留“查看原文”按钮
+            async renderCasesOrMarkdown(markdown) {
+                // 兜底：非字符串强转
+                if (typeof markdown !== 'string') {
+                    markdown = String(markdown || '');
+                }
+
+                // 统一换行符，避免解析不到 #### 分段
+                const normalized = markdown.replace(/\r\n/g, '\n');
+
+                const contentElement = document.getElementById('content');
+                if (!contentElement) return;
+
+                // 解析 case 列表
+                const cases = this.extractCases(normalized);
+
+                // 同时准备原文 HTML，便于切换
+                const originalHtml = this.toCleanHtml(normalized);
+
+                if (cases.length) {
+                    contentElement.innerHTML = `
+                        <div class="case-list" id="caseList"></div>
+                        <article class="markdown-body" id="originalArticle" style="display:none; margin-top:1rem;">${originalHtml}</article>
+                    `;
+
+                    this.renderCaseCards(cases);
+                    this.bindCardToggles();
+                    this.bindOriginalToggle();
+                } else {
+                    // 无法解析为 case 时，降级显示原文
+                    contentElement.innerHTML = `<article class="markdown-body">${originalHtml}</article>`;
+                }
+
+                // 高亮代码
+                if (window.hljs) {
+                    hljs.highlightAll();
+                }
+
+                // 生成目录（对原文生成）
+                this.generateTableOfContents();
+
+                // 更新下载按钮
+                const downloadBtn = document.getElementById('downloadBtn');
+                if (downloadBtn && this.currentFile) {
+                    downloadBtn.onclick = () => this.downloadReport(this.currentFile);
+                }
+
+                // 初始化阅读模式按钮状态
+                this.syncToggleStates();
+            }
+
+            toCleanHtml(markdown) {
+                const html = marked.parse(markdown);
+                return DOMPurify.sanitize(html, {
+                    ADD_ATTR: ['target'],
+                    ALLOWED_TAGS: [
+                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                        'p', 'br', 'hr',
+                        'ul', 'ol', 'li',
+                        'strong', 'em', 'code', 'pre', 'blockquote',
+                        'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
+                        'div', 'span'
+                    ],
+                    ALLOWED_ATTR: [
+                        'class', 'id', 'href', 'title', 'target', 'src', 'alt',
+                        'width', 'height', 'style'
+                    ]
+                });
+            }
+
+            extractCases(markdown) {
+                const items = [];
+                const regex = /####\s+\d+\.\s+(.+?)\n([\s\S]*?)(?=\n####\s+\d+\.|\n##\s|$)/g;
+                let match;
+                while ((match = regex.exec(markdown)) !== null) {
+                    const title = match[1].trim();
+                    const bodyMd = match[2].trim();
+                    const type = this.matchField(bodyMd, /类型\*\*:\s*([a-zA-Z]+)/);
+                    const severity = this.matchField(bodyMd, /严重程度\*\*:\s*([a-zA-Z]+)/);
+                    const subsystem = this.matchField(bodyMd, /子系统\*\*:\s*([^\n]+)/);
+                    const security = /安全相关/.test(bodyMd) || /CVE/i.test(bodyMd);
+                    const rootCause = this.extractRootCause(bodyMd);
+                    const fallback = (bodyMd.split(/\n\n/).find(t => t.trim()) || '').replace(/\n/g, ' ');
+                    const snippet = (rootCause || fallback || '').substring(0, 200) + ((rootCause || fallback || '').length > 200 ? '…' : '');
+
+                    items.push({
+                        title,
+                        type: (type || '').toLowerCase(),
+                        severity: (severity || '').toLowerCase(),
+                        subsystem: subsystem ? subsystem.trim() : '',
+                        security,
+                        snippet,
+                        bodyMd
                     });
-                    
-                    const contentElement = document.getElementById('content');
-                    if (contentElement) {
-                        contentElement.innerHTML = `
-                            <article class="markdown-body">
-                                ${cleanHtml}
-                            </article>
-                        `;
-                        
-                        // 高亮代码
-                        if (window.hljs) {
-                            hljs.highlightAll();
+                }
+                return items;
+            }
+
+            extractRootCause(bodyMd) {
+                // 捕获“问题根源”段落
+                const m = bodyMd.match(/问题根源[^\n]*\n+([\s\S]*?)(?:\n\n|\n\*\*|\n-\s|\n##|\n####|$)/);
+                if (!m) return '';
+                return m[1].trim().replace(/\n/g, ' ');
+            }
+
+            matchField(body, pattern) {
+                const m = body.match(pattern);
+                return m ? m[1] : '';
+            }
+
+            renderCaseCards(cases) {
+                const container = document.getElementById('caseList');
+                if (!container) return;
+
+                const cardsHtml = cases.map((item, idx) => {
+                    const tags = [
+                        item.type && `<span class="case-tag type">${item.type}</span>`,
+                        item.severity && `<span class="case-tag sev-${item.severity}">${item.severity}</span>`,
+                        item.subsystem && `<span class="case-tag">${item.subsystem}</span>`,
+                        item.security && '<span class="case-tag">security</span>'
+                    ].filter(Boolean).join('');
+
+                    const detailHtml = this.toCleanHtml(item.bodyMd);
+
+                    return `
+                        <div class="case-card" data-idx="${idx}" id="case-card-${idx}">
+                            <div class="case-header">
+                                <h3 class="case-title">${item.title}</h3>
+                                <div class="case-tags">${tags}</div>
+                            </div>
+                            <div class="case-body">${this.escapeHtml(item.snippet)}</div>
+                            <div class="case-actions">
+                                <button class="btn btn-primary case-toggle" data-target="case-detail-${idx}">展开详情</button>
+                            </div>
+                            <div class="case-detail" id="case-detail-${idx}">
+                                ${detailHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = cardsHtml;
+            }
+
+            bindCardToggles() {
+                document.querySelectorAll('.case-toggle').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = btn.dataset.target;
+                        const panel = document.getElementById(targetId);
+                        if (panel) {
+                            const active = panel.classList.toggle('active');
+                            btn.textContent = active ? '收起' : '展开详情';
                         }
-                        
-                        // 添加基础样式
-                        const article = contentElement.querySelector('.markdown-body');
-                        if (article) {
-                            article.classList.add('markdown-body');
-                        }
-                        
-                        // 现在生成目录
-                        this.generateTableOfContents();
-                        
-                        // 更新下载按钮
-                        const downloadBtn = document.getElementById('downloadBtn');
-                        if (downloadBtn && this.currentFile) {
-                            downloadBtn.onclick = () => this.downloadReport(this.currentFile);
-                        }
+                    });
+                });
+
+            }
+
+            bindOriginalToggle() {
+                const btn = document.getElementById('toggleOriginal');
+                const article = document.getElementById('originalArticle');
+                const caseList = document.getElementById('caseList');
+                if (!btn || !article) return;
+                btn.addEventListener('click', () => {
+                    const visible = article.style.display !== 'none';
+                    const willShowOriginal = !visible;
+
+                    article.style.display = willShowOriginal ? 'block' : 'none';
+                    if (caseList) {
+                        caseList.style.display = willShowOriginal ? 'none' : 'block';
                     }
-                    
-                } catch (error) {
-                    console.error('Error in simpleRenderMarkdown:', error);
-                    throw error;
+
+                    btn.classList.toggle('btn-toggle-active', willShowOriginal);
+                    btn.title = willShowOriginal ? '隐藏原文' : '切换原文视图';
+                    this.generateTableOfContents();
+                });
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text == null ? '' : String(text);
+                return div.innerHTML;
+            }
+
+            syncToggleStates() {
+                const comfyToggle = document.getElementById('comfyToggle');
+                const narrowToggle = document.getElementById('narrowToggle');
+
+                if (comfyToggle && document.body.classList.contains('reading-comfy')) {
+                    comfyToggle.classList.add('btn-toggle-active');
+                }
+                if (narrowToggle && document.body.classList.contains('reading-narrow')) {
+                    narrowToggle.classList.add('btn-toggle-active');
+                }
+            }
+
+            enableDefaultComfy() {
+                document.body.classList.add('reading-comfy');
+                const comfyToggle = document.getElementById('comfyToggle');
+                if (comfyToggle) {
+                    comfyToggle.classList.add('btn-toggle-active');
                 }
             }
             
             generateTableOfContents() {
-                console.log('Generating table of contents...');
-                
                 const tocList = document.getElementById('tocList');
-                if (!tocList) {
-                    console.error('TOC list element not found');
+                if (!tocList) return;
+
+                const caseList = document.getElementById('caseList');
+                const originalArticle = document.getElementById('originalArticle');
+                const showingOriginal = originalArticle && originalArticle.style.display !== 'none';
+
+                // 当卡片存在且当前展示卡片模式时，用卡片生成目录
+                if (caseList && caseList.children.length && !showingOriginal) {
+                    let tocHTML = '';
+                    [...caseList.children].forEach((card, idx) => {
+                        const titleEl = card.querySelector('.case-title');
+                        const text = titleEl ? titleEl.textContent.trim() : `Case ${idx + 1}`;
+                        const targetId = card.id || `case-card-${idx}`;
+                        card.id = targetId;
+                        tocHTML += `
+                            <li class="toc-item">
+                                <a href="#${targetId}" class="toc-link level-2">${text}</a>
+                            </li>
+                        `;
+                    });
+
+                    tocList.innerHTML = tocHTML || '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
+                    this.bindTocLinks();
                     return;
                 }
-                
-                // 查找所有标题
+
+                // 否则对原文生成目录
                 const article = document.querySelector('.markdown-body');
                 if (!article) {
                     tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
                     return;
                 }
-                
+
                 const headers = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                console.log('Found headers:', headers.length);
-                
-                if (headers.length === 0) {
+                if (!headers.length) {
                     tocList.innerHTML = '<div style="color: var(--text-tertiary); text-align: center; padding: 1rem;">暂无目录</div>';
                     return;
                 }
-                
+
                 let tocHTML = '';
                 headers.forEach((header, index) => {
-                    // 确保标题有 ID
                     if (!header.id) {
                         header.id = `header-${index}`;
                     }
-                    
                     const level = parseInt(header.tagName.substring(1));
                     const text = header.textContent || `标题 ${index + 1}`;
                     const indent = (level - 1) * 20;
-                    
                     tocHTML += `
                         <li class="toc-item">
-                            <a href="#${header.id}" 
-                               class="toc-link level-${level}"
-                               style="padding-left: ${indent}px">
-                                ${text}
-                            </a>
+                            <a href="#${header.id}" class="toc-link level-${level}" style="padding-left: ${indent}px">${text}</a>
                         </li>
                     `;
                 });
-                
+
                 tocList.innerHTML = tocHTML;
-                
-                // 绑定目录链接事件
                 this.bindTocLinks();
-                
-                console.log('Table of contents generated');
             }
             
             bindTocLinks() {
@@ -772,6 +1145,38 @@
                         window.print();
                     });
                 }
+
+                // 滚动进度
+                window.addEventListener('scroll', () => this.updateScrollProgress());
+                // 舒适模式
+                const comfyToggle = document.getElementById('comfyToggle');
+                if (comfyToggle) {
+                    comfyToggle.addEventListener('click', () => {
+                        document.body.classList.toggle('reading-comfy');
+                        comfyToggle.classList.toggle('btn-toggle-active');
+                    });
+                }
+
+                // 窄版模式
+                const narrowToggle = document.getElementById('narrowToggle');
+                if (narrowToggle) {
+                    narrowToggle.addEventListener('click', () => {
+                        document.body.classList.toggle('reading-narrow');
+                        narrowToggle.classList.toggle('btn-toggle-active');
+                    });
+                }
+            }
+
+            updateScrollProgress() {
+                const progress = document.getElementById('scrollProgress');
+                const article = document.querySelector('.markdown-body');
+                if (!progress || !article) return;
+
+                const doc = document.documentElement;
+                const scrollTop = window.scrollY || doc.scrollTop;
+                const scrollHeight = doc.scrollHeight - doc.clientHeight;
+                const percent = scrollHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100)) : 0;
+                progress.style.width = `${percent}%`;
             }
             
             setupTheme() {
