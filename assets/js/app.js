@@ -94,7 +94,6 @@ class App {
     
     renderDashboard() {
         this.renderTopReports();
-        this.renderReportChart();
         this.renderRecentUpdates();
     }
     
@@ -122,51 +121,6 @@ class App {
                 </div>
             </div>
         `).join('');
-    }
-    
-    renderReportChart() {
-        const ctx = document.getElementById('reportChart');
-        if (!ctx) return;
-        
-        // 按月份分组
-        const monthlyData = {};
-        this.reports.forEach(report => {
-            const yearMonth = report.date.substring(0, 6); // YYYY-MM
-            monthlyData[yearMonth] = (monthlyData[yearMonth] || 0) + 1;
-        });
-        
-        const labels = Object.keys(monthlyData).sort();
-        const data = labels.map(label => monthlyData[label]);
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '报告数量',
-                    data: data,
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        });
     }
     
     renderRecentUpdates() {
@@ -388,11 +342,6 @@ class App {
             'browseAllBtn': () => {
                 if (window.sidebar) {
                     sidebar.switchSection('reports');
-                }
-            },
-            'viewStatsBtn': () => {
-                if (window.sidebar) {
-                    sidebar.switchSection('stats');
                 }
             },
             'downloadAllBtn': () => this.downloadAllReports(),

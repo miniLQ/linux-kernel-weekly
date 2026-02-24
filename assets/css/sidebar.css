@@ -334,25 +334,38 @@ input:checked + .slider:before {
 }
 
 /* 滚动条样式 */
+.sidebar,
+.sidebar-content,
+.report-toc {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--primary-color) 70%, transparent) transparent;
+}
+
 .sidebar::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar,
 .report-toc::-webkit-scrollbar {
-    width: 6px;
+    width: 3px;
 }
 
 .sidebar::-webkit-scrollbar-track,
+.sidebar-content::-webkit-scrollbar-track,
 .report-toc::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
+    background: transparent;
 }
 
 .sidebar::-webkit-scrollbar-thumb,
+.sidebar-content::-webkit-scrollbar-thumb,
 .report-toc::-webkit-scrollbar-thumb {
-    background: var(--border-color);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color) 80%, var(--secondary-color) 20%), color-mix(in srgb, var(--primary-color) 50%, transparent));
     border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 3px 6px rgba(0, 0, 0, 0.16);
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover,
+.sidebar-content::-webkit-scrollbar-thumb:hover,
 .report-toc::-webkit-scrollbar-thumb:hover {
-    background: var(--border-hover);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color) 90%, var(--secondary-color) 10%), color-mix(in srgb, var(--primary-color) 65%, transparent));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* 移动端侧边栏 */
