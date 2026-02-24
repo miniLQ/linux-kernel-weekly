@@ -822,6 +822,9 @@
                 // 生成目录（对原文生成）
                 this.generateTableOfContents();
 
+                // 参考链接新开标签页
+                this.forceLinksToNewTab(contentElement);
+
                 // 更新下载按钮
                 const downloadBtn = document.getElementById('downloadBtn');
                 if (downloadBtn && this.currentFile) {
@@ -1078,6 +1081,15 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            }
+
+            forceLinksToNewTab(scopeEl) {
+                const root = scopeEl || document;
+                const links = root.querySelectorAll('.markdown-body a, .case-detail a, .case-body a');
+                links.forEach(a => {
+                    a.setAttribute('target', '_blank');
+                    a.setAttribute('rel', 'noopener noreferrer');
+                });
             }
             
             showError(message) {
